@@ -1,0 +1,129 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+
+The integrity and crossorigin attributes are used for Subresource Integrity (SRI) checking. This allows browsers to ensure that resources hosted on third-party servers have not been tampered with. Use of SRI is recommended as a best-practice, whenever libraries are loaded from a third-party source. Read more at srihash.org
+
+<div class="jumbotron">
+    <h1>ASP.NET</h1>
+    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
+    <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+</div>
+
+<div class="row">
+    <form action="Home/Charge" method="post" id="payment-form">
+        <div class="form-row">
+            <label for="card-element">
+                Credit or debit card
+            </label>
+            <div id="card-element">
+                <!-- A Stripe Element will be inserted here. -->
+            </div>
+
+            @*<label for="customer-address">
+                Shipping Address
+            </label>
+            <input type="text" id="customer-address" />
+
+
+            <label for="customer-contact-no">
+                Contact Number
+            </label>
+            <input type="text" id="customer-contact-no" />*@
+
+
+            <label for="card-element">
+                Credit or debit card
+            </label>
+            <div id="card-element">
+                <!-- A Stripe Element will be inserted here. -->
+            </div>
+            <!-- Used to display Element errors. -->
+            <div id="card-errors" role="alert"></div>
+        </div>
+        <div>
+            <h3>Monthly subscription for $50 usd only!</h3>
+        </div>
+        <button>Pay and Subscribe!</button>
+    </form>
+    @*<br /><br /><br />
+    <form action="Home/MonthlySubscription" method="post">
+        <button id="monthly-subscribe" type="submit">subscribe monthly!</button>
+
+    </form>*@
+
+
+</div>
+
+
+<script>
+    $(document).ready(() => {
+        var stripe = Stripe('pk_test_wTErU0dkXvd7FMJT9BmEYSFl');
+        var elements = stripe.elements();
+
+        // Custom styling can be passed to options when creating an Element.
+        var style = {
+            base: {
+                // Add your base input styles here. For example:
+                fontSize: '16px',
+                color: "#32325d",
+            }
+        };
+
+        // Create an instance of the card Element.
+        var card = elements.create('card', { style: style });
+
+        // Add an instance of the card Element into the `card-element` <div>.
+        card.mount('#card-element');
+
+        card.addEventListener('change', function (event) {
+            var displayError = document.getElementById('card-errors');
+            if (event.error) {
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.textContent = '';
+            }
+        });
+
+        // Create a token or display an error when the form is submitted.
+        var form = document.getElementById('payment-form');
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            stripe.createToken(card).then(function (result) {
+                if (result.error) {
+                    // Inform the customer that there was an error.
+                    var errorElement = document.getElementById('card-errors');
+                    errorElement.textContent = result.error.message;
+                } else {
+                    // Send the token to your server.
+                    stripeTokenHandler(result.token);
+                }
+            });
+        });
+    })
+
+    function stripeTokenHandler(token) {
+        // Insert the token ID into the form so it gets submitted to the server
+        var form = document.getElementById('payment-form');
+        var hiddenInput = document.createElement('input');
+        hiddenInput.setAttribute('type', 'hidden');
+        hiddenInput.setAttribute('name', 'stripeToken');
+        hiddenInput.setAttribute('value', token.id);
+        form.appendChild(hiddenInput);
+
+
+        var customerAddress = document.createElement('input');
+        customerAddress.setAttribute('type', 'hidden');
+        customerAddress.setAttribute('name', 'customerAddress');
+        customerAddress.setAttribute('value', "test address, street 123, yolo, xyz.");
+        form.appendChild(customerAddress);
+
+
+        // Submit the form
+        form.submit();
+    }
+</script>
